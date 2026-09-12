@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Exercise, SetEntry, Workout
+from .models import DailyMacro, Exercise, SetEntry, Workout
 
 
 class ExerciseSerializer(serializers.ModelSerializer):
@@ -22,5 +22,12 @@ class WorkoutSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Workout
-        fields = ["id", "date", "notes", "created_at", "sets"]
+        fields = ["id", "date", "workout_type", "notes", "created_at", "sets"]
+        read_only_fields = ["created_at"]
+
+
+class DailyMacroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DailyMacro
+        fields = ["id", "date", "calories", "protein_g", "carbs_g", "fat_g", "notes", "created_at"]
         read_only_fields = ["created_at"]

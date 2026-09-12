@@ -21,4 +21,13 @@ export const api = {
   listExercises: () => request("/exercises/"),
   createExercise: (data) =>
     request("/exercises/", { method: "POST", body: JSON.stringify(data) }),
+
+  listSets: () => request("/sets/"),
+  createSet: (data) => request("/sets/", { method: "POST", body: JSON.stringify(data) }),
+  deleteSet: (id) => request(`/sets/${id}/`, { method: "DELETE" }),
+
+  listMacros: () => request("/macros/"),
+  createMacro: (data) =>
+    request("/macros/", { method: "POST", body: JSON.stringify(data) }),
+  deleteMacro: (id) => request(`/macros/${id}/`, { method: "DELETE" }),
 };

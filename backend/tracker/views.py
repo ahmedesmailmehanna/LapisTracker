@@ -1,7 +1,12 @@
 from rest_framework import viewsets
 
-from .models import Exercise, SetEntry, Workout
-from .serializers import ExerciseSerializer, SetEntrySerializer, WorkoutSerializer
+from .models import DailyMacro, Exercise, SetEntry, Workout
+from .serializers import (
+    DailyMacroSerializer,
+    ExerciseSerializer,
+    SetEntrySerializer,
+    WorkoutSerializer,
+)
 
 
 class ExerciseViewSet(viewsets.ModelViewSet):
@@ -17,3 +22,8 @@ class WorkoutViewSet(viewsets.ModelViewSet):
 class SetEntryViewSet(viewsets.ModelViewSet):
     queryset = SetEntry.objects.select_related("exercise", "workout").all()
     serializer_class = SetEntrySerializer
+
+
+class DailyMacroViewSet(viewsets.ModelViewSet):
+    queryset = DailyMacro.objects.all()
+    serializer_class = DailyMacroSerializer

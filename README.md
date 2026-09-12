@@ -34,9 +34,10 @@ LapisTracker/
 
 ## Data model (v1)
 
-- **Workout** — date, notes, belongs to a user
+- **Workout** — date, workout_type (strength/cardio/hiit/mobility/other), notes, belongs to a user
 - **Exercise** — name, category (e.g. push/pull/legs/cardio)
 - **SetEntry** — belongs to a Workout + Exercise, reps, weight_kg, order
+- **DailyMacro** — date (unique per user), calories, protein_g, carbs_g, fat_g, notes
 
 ## Getting started
 
@@ -59,8 +60,9 @@ docker compose exec backend python manage.py createsuperuser
 This is intentionally scoped as a series of small, shippable milestones rather than
 one big build:
 
-1. **v1 — CRUD core** (this scaffold): Workout/Exercise/SetEntry models, DRF viewsets,
-   basic React list/create views wired through Redux.
+1. **v1 — CRUD core** (this scaffold): Workout/Exercise/SetEntry/DailyMacro models, DRF
+   viewsets, React views wired through Redux — log a workout with a type, add sets
+   (exercise/reps/weight) to it, and log daily macros (calories/protein/carbs/fat).
 2. **v2 — Auth**: per-user accounts (Django auth + DRF token or session auth), so
    workouts are scoped to the logged-in user.
 3. **v3 — Progress views**: a simple chart (e.g. weight lifted over time per exercise)

@@ -22,6 +22,13 @@ class Exercise(models.Model):
 
 
 class Workout(models.Model):
+    class WorkoutType(models.TextChoices):
+        STRENGTH = "strength", "Strength"
+        CARDIO = "cardio", "Cardio"
+        HIIT = "hiit", "HIIT"
+        MOBILITY = "mobility", "Mobility"
+        OTHER = "other", "Other"
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -30,6 +37,9 @@ class Workout(models.Model):
         blank=True,
     )
     date = models.DateField()
+    workout_type = models.CharField(
+        max_length=20, choices=WorkoutType.choices, default=WorkoutType.STRENGTH
+    )
     notes = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -37,7 +47,7 @@ class Workout(models.Model):
         ordering = ["-date", "-created_at"]
 
     def __str__(self):
-        return f"Workout on {self.date}"
+        return f"{self.get_workout_type_display()} workout on {self.date}"
 
 
 class SetEntry(models.Model):
@@ -52,3 +62,29 @@ class SetEntry(models.Model):
 
     def __str__(self):
         return f"{self.exercise.name}: {self.reps} x {self.weight_kg}kg"
+
+
+class DailyMacro(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="daily_macros",
+        null=True,
+        blank=True,
+    )
+    date = models.DateField()
+    calories = models.PositiveIntegerField()
+    protein_g = models.DecimalField(max_digits=6, decimal_places=1, default=0)
+    carbs_g = models.DecimalField(max_digits=6, decimal_places=1, default=0)
+    fat_g = models.DecimalField(max_digits=6, decimal_places=1, default=0)
+    notes = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "date"], name="one_macro_log_per_user_per_day"),
+        ]
+
+    def __str__(self):
+        return f"Macros for {self.date}: {self.calories} kcal"
