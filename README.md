@@ -98,8 +98,9 @@ docker compose exec backend python manage.py test
   views wired through Redux: log a workout, add sets, log daily macros.
 - [x] **Authentication** — token auth with register/login/logout, all data scoped to
   the logged-in user, login/register screens and a Redux auth slice.
-- [ ] **Exercise management UI** — create, rename and delete exercises from the app
-  instead of the Django admin.
+- [x] **Exercise management UI** — create, rename, recategorise and delete exercises
+  from the app instead of the Django admin. An exercise that logged sets still use
+  cannot be deleted (the API answers 409 and the UI shows why).
 - [ ] **Progress charts** — weight per exercise over time and daily macro/calorie trends.
 - [ ] **Tests + CI** — backend test suite and a GitHub Actions workflow that runs the
   tests and the frontend build.
