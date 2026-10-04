@@ -67,7 +67,10 @@ class Workout(models.Model):
 
 class SetEntry(models.Model):
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE, related_name="sets")
-    exercise = models.ForeignKey(Exercise, on_delete=models.PROTECT, related_name="sets")
+    # RESTRICT: an exercise that has logged sets cannot be deleted on its own,
+    # but (unlike PROTECT) it can go when its sets are deleted in the same
+    # operation, e.g. when the owning user's account is deleted.
+    exercise = models.ForeignKey(Exercise, on_delete=models.RESTRICT, related_name="sets")
     reps = models.PositiveIntegerField()
     weight_kg = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     order = models.PositiveIntegerField(default=0)

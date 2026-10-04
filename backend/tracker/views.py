@@ -1,4 +1,4 @@
-from django.db.models import ProtectedError
+from django.db.models import RestrictedError
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
@@ -31,12 +31,12 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         serializer.save(owner=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
-        # SetEntry.exercise uses on_delete=PROTECT, so the database refuses
-        # to delete an exercise that logged sets still point at. Report that
-        # as a 409 Conflict the UI can show, instead of a 500 error.
+        # SetEntry.exercise uses on_delete=RESTRICT, so Django refuses to
+        # delete an exercise that logged sets still point at. Report that as
+        # a 409 Conflict the UI can show, instead of a 500 error.
         try:
             return super().destroy(request, *args, **kwargs)
-        except ProtectedError:
+        except RestrictedError:
             return Response(
                 {"detail": "This exercise is used in logged sets and cannot be deleted."},
                 status=status.HTTP_409_CONFLICT,
