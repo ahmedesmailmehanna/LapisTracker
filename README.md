@@ -18,14 +18,16 @@ LapisTracker/
 ├── backend/
 │   ├── core/            # Django project settings/urls
 │   ├── accounts/        # register / login / logout / me (DRF token auth)
-│   ├── tracker/         # Workout, Exercise, SetEntry, DailyMacro models + REST API
+│   ├── tracker/         # Workout, Exercise, SetEntry, DailyMacro models + REST API,
+│   │                    #   plus progress.py (aggregate endpoints for the charts)
 │   ├── manage.py
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
 │   │   ├── api/         # fetch client for the Django API (adds the auth token)
-│   │   ├── features/    # one folder per Redux slice: auth, workouts, sets, exercises, macros
+│   │   ├── features/    # one folder per Redux slice: auth, workouts, sets, exercises,
+│   │   │                #   macros, progress
 │   │   ├── App.jsx
 │   │   └── store.js
 │   ├── package.json
@@ -86,6 +88,17 @@ assign it to your account:
 docker compose exec backend python manage.py claim_unowned_data <username>
 ```
 
+## Progress endpoints
+
+The charts read from two aggregate endpoints rather than paging through the CRUD lists:
+
+| Endpoint | Returns |
+|---|---|
+| `/api/progress/exercises/<id>/?days=90` | Heaviest set per training day for one exercise |
+| `/api/progress/macros/?days=90` | Daily calories, protein, carbs and fat |
+
+`days` is optional; leave it out for all time.
+
 ## Tests
 
 ```bash
@@ -101,7 +114,8 @@ docker compose exec backend python manage.py test
 - [x] **Exercise management UI** — create, rename, recategorise and delete exercises
   from the app instead of the Django admin. An exercise that logged sets still use
   cannot be deleted (the API answers 409 and the UI shows why).
-- [ ] **Progress charts** — weight per exercise over time and daily macro/calorie trends.
+- [x] **Progress charts** — heaviest set per day for an exercise, and daily calorie and
+  macro trends, over a selectable period (Recharts, loaded only when the tab opens).
 - [ ] **Tests + CI** — backend test suite and a GitHub Actions workflow that runs the
   tests and the frontend build.
 - [ ] **Deployment** — production Docker setup and a Terraform config for AWS.
