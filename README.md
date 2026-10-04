@@ -9,7 +9,8 @@ in full-stack intern postings (e.g. Formlabs FormNow: Django, React/Redux, Docke
 
 - **Backend:** Django + Django REST Framework, PostgreSQL
 - **Frontend:** React + Redux Toolkit, fetches the API with a small typed client
-- **Infra:** Docker Compose (db + backend + frontend), ready to extend with Terraform later
+- **Infra:** Docker Compose for development and production, GitHub Actions CI,
+  Terraform configuration for AWS (EC2 + RDS)
 
 ## Project layout
 
@@ -32,7 +33,10 @@ LapisTracker/
 │   │   └── store.js
 │   ├── package.json
 │   └── Dockerfile
-└── docker-compose.yml
+├── infra/terraform/     # AWS infrastructure as code (EC2 + RDS)
+├── .github/workflows/   # CI: backend tests + frontend build
+├── docker-compose.yml       # development
+└── docker-compose.prod.yml  # production (nginx + gunicorn)
 ```
 
 ## Data model
@@ -124,6 +128,28 @@ Every push and pull request runs `.github/workflows/ci.yml` on GitHub Actions:
 - **Frontend build** — `npm ci` and `npm run build`; with `CI=true` ESLint warnings
   fail the build.
 
+## Production and deployment
+
+`docker-compose.prod.yml` runs the app the way a server would: the React app is built
+once and served by nginx, which also proxies `/api` and `/admin` to Django running under
+gunicorn as a non-root user. Everything is on one origin, so no CORS is involved.
+
+Try it locally (uses its own PostgreSQL via the `localdb` profile):
+
+```bash
+cp .env.prod.example .env.prod      # then set DJANGO_SECRET_KEY and POSTGRES_PASSWORD
+docker compose -f docker-compose.prod.yml --profile localdb up --build
+# open http://localhost   (set WEB_PORT=8080 in the shell to use another port)
+```
+
+Settings come from environment variables (see `.env.prod.example`). In production
+`DJANGO_DEBUG` is off and the backend refuses to start without `DJANGO_SECRET_KEY`.
+
+`infra/terraform/` contains a Terraform configuration for AWS (EC2 running this Compose
+stack, PostgreSQL on RDS, secrets in SSM Parameter Store). See
+[infra/terraform/README.md](infra/terraform/README.md) for the architecture, usage, cost
+and known limitations. It has not been applied to a real account yet.
+
 ## Roadmap
 
 - [x] **CRUD core** — Workout/Exercise/SetEntry/DailyMacro models, DRF viewsets, React
@@ -137,7 +163,8 @@ Every push and pull request runs `.github/workflows/ci.yml` on GitHub Actions:
   macro trends, over a selectable period (Recharts, loaded only when the tab opens).
 - [x] **Tests + CI** — backend test suite and a GitHub Actions workflow that runs the
   tests and the frontend build.
-- [ ] **Deployment** — production Docker setup and a Terraform config for AWS.
+- [x] **Deployment** — production Docker setup (nginx + gunicorn) and a Terraform
+  configuration for AWS (EC2 + RDS). Written and statically checked; not yet applied.
 
 ## Why this project exists
 
