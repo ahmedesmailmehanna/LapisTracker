@@ -4,6 +4,7 @@ import { setUnauthorizedHandler, tokenStorage } from "./api/client";
 import authReducer, { logout, sessionExpired } from "./features/auth/authSlice";
 import exercisesReducer from "./features/exercises/exercisesSlice";
 import macrosReducer from "./features/macros/macrosSlice";
+import progressReducer from "./features/progress/progressSlice";
 import setsReducer from "./features/sets/setsSlice";
 import workoutsReducer from "./features/workouts/workoutsSlice";
 
@@ -13,6 +14,7 @@ const appReducer = combineReducers({
   exercises: exercisesReducer,
   sets: setsReducer,
   macros: macrosReducer,
+  progress: progressReducer,
 });
 
 // When the user logs out (or their token stops working), throw away the

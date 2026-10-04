@@ -68,6 +68,8 @@ const post = (path, data) => request(path, { method: "POST", body: JSON.stringif
 const patch = (path, data) => request(path, { method: "PATCH", body: JSON.stringify(data) });
 const del = (path) => request(path, { method: "DELETE" });
 
+const daysQuery = (days) => (days ? `?days=${days}` : "");
+
 export const api = {
   register: (credentials) => post("/auth/register/", credentials),
   login: (credentials) => post("/auth/login/", credentials),
@@ -90,4 +92,9 @@ export const api = {
   listMacros: () => request("/macros/"),
   createMacro: (data) => post("/macros/", data),
   deleteMacro: (id) => del(`/macros/${id}/`),
+
+  // `days` is optional: leave it out (null) for "all time".
+  getExerciseProgress: (exerciseId, days) =>
+    request(`/progress/exercises/${exerciseId}/${daysQuery(days)}`),
+  getMacroTrend: (days) => request(`/progress/macros/${daysQuery(days)}`),
 };
