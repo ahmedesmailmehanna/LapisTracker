@@ -99,11 +99,30 @@ The charts read from two aggregate endpoints rather than paging through the CRUD
 
 `days` is optional; leave it out for all time.
 
-## Tests
+## Tests and CI
 
 ```bash
 docker compose exec backend python manage.py test
 ```
+
+With a coverage report (as CI runs it):
+
+```bash
+docker compose exec backend pip install -r requirements-dev.txt
+docker compose exec backend coverage run manage.py test
+docker compose exec backend coverage report
+```
+
+The tests run against PostgreSQL and cover the auth flow, per-user data isolation,
+validation errors, the progress endpoints, database constraints and the
+`claim_unowned_data` command.
+
+Every push and pull request runs `.github/workflows/ci.yml` on GitHub Actions:
+
+- **Backend tests** — `manage.py check`, a check that no migration is missing, and the
+  test suite with coverage (fails under 90%) against a PostgreSQL 16 service container.
+- **Frontend build** — `npm ci` and `npm run build`; with `CI=true` ESLint warnings
+  fail the build.
 
 ## Roadmap
 
@@ -116,7 +135,7 @@ docker compose exec backend python manage.py test
   cannot be deleted (the API answers 409 and the UI shows why).
 - [x] **Progress charts** — heaviest set per day for an exercise, and daily calorie and
   macro trends, over a selectable period (Recharts, loaded only when the tab opens).
-- [ ] **Tests + CI** — backend test suite and a GitHub Actions workflow that runs the
+- [x] **Tests + CI** — backend test suite and a GitHub Actions workflow that runs the
   tests and the frontend build.
 - [ ] **Deployment** — production Docker setup and a Terraform config for AWS.
 
