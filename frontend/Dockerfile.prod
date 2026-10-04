@@ -1,0 +1,30 @@
+# Production image for the React app: a multi-stage build.
+# Stage 1 uses Node to compile the app into static files.
+# Stage 2 is a small nginx image that only contains those files, so the
+# final image has no Node, no node_modules and no source code.
+
+# ---- Stage 1: build --------------------------------------------------------
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Install exactly the versions in package-lock.json (cached until it changes).
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+
+# Create React App bakes this value into the JavaScript at build time.
+# "/api" is a relative URL: the browser calls the same host that served the
+# page, and nginx forwards those requests to the backend.
+ARG REACT_APP_API_URL=/api
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+RUN npm run build
+
+# ---- Stage 2: serve --------------------------------------------------------
+FROM nginx:1.27-alpine
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/build /usr/share/nginx/html
+
+EXPOSE 80
