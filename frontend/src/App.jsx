@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import AuthPage from "./features/auth/AuthPage";
@@ -10,11 +10,22 @@ import {
   selectCurrentUser,
   selectToken,
 } from "./features/auth/authSlice";
+import ExerciseManager from "./features/exercises/ExerciseManager";
 import MacroLog from "./features/macros/MacroLog";
 import WorkoutList from "./features/workouts/WorkoutList";
 
+// The app is small enough that a piece of state is all the "routing" it
+// needs. If deep links or the back button start to matter, swap this for
+// react-router.
+const TABS = [
+  { id: "workouts", label: "Workouts", component: WorkoutList },
+  { id: "exercises", label: "Exercises", component: ExerciseManager },
+  { id: "macros", label: "Macros", component: MacroLog },
+];
+
 export default function App() {
   const dispatch = useDispatch();
+  const [activeTab, setActiveTab] = useState("workouts");
   const token = useSelector(selectToken);
   const user = useSelector(selectCurrentUser);
   const status = useSelector(selectAuthStatus);
@@ -51,15 +62,26 @@ export default function App() {
         <p>Loading…</p>
       );
     }
+    const ActiveTab = TABS.find((tab) => tab.id === activeTab).component;
     return (
       <>
         <p>
           Signed in as <strong>{user.username}</strong>{" "}
           <button onClick={() => dispatch(logout())}>Log out</button>
         </p>
-        <WorkoutList />
-        <hr style={{ margin: "32px 0" }} />
-        <MacroLog />
+        <nav style={{ marginBottom: 16 }}>
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              aria-current={tab.id === activeTab ? "page" : undefined}
+              style={{ marginRight: 8, fontWeight: tab.id === activeTab ? "bold" : "normal" }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+        <ActiveTab />
       </>
     );
   }

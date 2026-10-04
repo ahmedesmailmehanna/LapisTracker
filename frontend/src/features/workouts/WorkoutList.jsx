@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { fetchExercises, selectAllExercises } from "../exercises/exercisesSlice";
+import {
+  fetchExercises,
+  selectAllExercises,
+  selectExercisesStatus,
+} from "../exercises/exercisesSlice";
 import { addSet, removeSet } from "../sets/setsSlice";
 import {
   addWorkout,
@@ -33,6 +37,10 @@ function AddSetForm({ workoutId }) {
     );
     setReps("");
     setWeightKg("");
+  }
+
+  if (exercises.length === 0) {
+    return <p style={{ marginTop: 6 }}>Add an exercise in the Exercises tab to log sets.</p>;
   }
 
   return (
@@ -70,6 +78,7 @@ export default function WorkoutList() {
   const dispatch = useDispatch();
   const workouts = useSelector(selectAllWorkouts);
   const status = useSelector(selectWorkoutsStatus);
+  const exercisesStatus = useSelector(selectExercisesStatus);
   const [date, setDate] = useState("");
   const [workoutType, setWorkoutType] = useState("strength");
   const [notes, setNotes] = useState("");
@@ -78,8 +87,14 @@ export default function WorkoutList() {
     if (status === "idle") {
       dispatch(fetchWorkouts());
     }
-    dispatch(fetchExercises());
   }, [status, dispatch]);
+
+  // The add-set dropdown needs the exercise list.
+  useEffect(() => {
+    if (exercisesStatus === "idle") {
+      dispatch(fetchExercises());
+    }
+  }, [exercisesStatus, dispatch]);
 
   function handleSubmit(e) {
     e.preventDefault();
