@@ -127,6 +127,9 @@ Every push and pull request runs `.github/workflows/ci.yml` on GitHub Actions:
   test suite with coverage (fails under 90%) against a PostgreSQL 16 service container.
 - **Frontend build** — `npm ci` and `npm run build`; with `CI=true` ESLint warnings
   fail the build.
+- **Production images build** — builds the images in `docker-compose.prod.yml`.
+- **Terraform validate** — `terraform fmt -check` and `terraform validate` on
+  `infra/terraform` (no AWS credentials, nothing is planned or applied).
 
 ## Production and deployment
 
