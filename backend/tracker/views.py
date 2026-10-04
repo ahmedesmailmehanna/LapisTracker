@@ -1,4 +1,6 @@
-from rest_framework import viewsets
+from django.db.models import ProtectedError
+from rest_framework import status, viewsets
+from rest_framework.response import Response
 
 from .models import DailyMacro, Exercise, SetEntry, Workout
 from .serializers import (
@@ -17,12 +19,28 @@ from .serializers import (
 
 class ExerciseViewSet(viewsets.ModelViewSet):
     serializer_class = ExerciseSerializer
+    # A user's exercise list is small and the UI needs all of it at once
+    # (for the "pick an exercise" dropdown), so return a plain list instead
+    # of pages.
+    pagination_class = None
 
     def get_queryset(self):
         return Exercise.objects.filter(owner=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        # SetEntry.exercise uses on_delete=PROTECT, so the database refuses
+        # to delete an exercise that logged sets still point at. Report that
+        # as a 409 Conflict the UI can show, instead of a 500 error.
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            return Response(
+                {"detail": "This exercise is used in logged sets and cannot be deleted."},
+                status=status.HTTP_409_CONFLICT,
+            )
 
 
 class WorkoutViewSet(viewsets.ModelViewSet):
