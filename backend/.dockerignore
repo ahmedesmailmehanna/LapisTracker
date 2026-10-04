@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.coverage
+htmlcov/
+staticfiles/
+db.sqlite3
+.env*

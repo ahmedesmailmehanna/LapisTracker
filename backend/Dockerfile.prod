@@ -1,0 +1,30 @@
+# Production image for the Django API.
+# Differences from the dev Dockerfile: no source-code volume, no autoreload
+# server, runs as a non-root user, and serves requests with gunicorn.
+FROM python:3.12-slim
+
+# Don't write .pyc files; print logs straight away instead of buffering them.
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Install dependencies first: this layer is cached until requirements.txt
+# changes, so code-only changes rebuild in seconds.
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# Run as an unprivileged user so a compromised app cannot act as root
+# inside the container.
+RUN useradd --create-home appuser \
+    && mkdir -p /app/staticfiles \
+    && chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8000
+
+# Started through "sh" so it works even if the file lost its executable bit
+# (which happens on Windows checkouts).
+ENTRYPOINT ["sh", "./entrypoint.prod.sh"]
