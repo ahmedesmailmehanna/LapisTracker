@@ -102,3 +102,42 @@ jobs:
       # warnings as errors, so this step is also the lint check.
       - name: Production build
         run: npm run build
+
+  docker:
+    name: Production images build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # Compose needs the env file to exist; the example values are enough
+      # for a build.
+      - name: Create env file
+        run: cp .env.prod.example .env.prod
+
+      - name: Build backend and web images
+        run: docker compose -f docker-compose.prod.yml build
+
+  terraform:
+    name: Terraform validate
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: infra/terraform
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Check formatting
+        run: terraform fmt -check
+
+      # -backend=false: only download the providers; no state, no AWS
+      # credentials. Nothing is planned or applied in CI.
+      - name: Init
+        run: terraform init -backend=false
+
+      - name: Validate
+        run: terraform validate
