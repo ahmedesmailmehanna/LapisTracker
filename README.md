@@ -17,14 +17,15 @@ in full-stack intern postings (e.g. Formlabs FormNow: Django, React/Redux, Docke
 LapisTracker/
 ├── backend/
 │   ├── core/            # Django project settings/urls
-│   ├── tracker/         # Django app: Workout, Exercise, Set models + REST API
+│   ├── accounts/        # register / login / logout / me (DRF token auth)
+│   ├── tracker/         # Workout, Exercise, SetEntry, DailyMacro models + REST API
 │   ├── manage.py
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── api/         # fetch client for the Django API
-│   │   ├── features/workouts/   # Redux slice + components
+│   │   ├── api/         # fetch client for the Django API (adds the auth token)
+│   │   ├── features/    # one folder per Redux slice: auth, workouts, sets, exercises, macros
 │   │   ├── App.jsx
 │   │   └── store.js
 │   ├── package.json
@@ -32,10 +33,10 @@ LapisTracker/
 └── docker-compose.yml
 ```
 
-## Data model (v1)
+## Data model
 
 - **Workout** — date, workout_type (strength/cardio/hiit/mobility/other), notes, belongs to a user
-- **Exercise** — name, category (e.g. push/pull/legs/cardio)
+- **Exercise** — name (unique per user), category (push/pull/legs/core/cardio/other), belongs to a user
 - **SetEntry** — belongs to a Workout + Exercise, reps, weight_kg, order
 - **DailyMacro** — date (unique per user), calories, protein_g, carbs_g, fat_g, notes
 
@@ -48,28 +49,61 @@ docker compose up --build
 - Backend API: http://localhost:8000/api/
 - Frontend: http://localhost:3000
 
-Run migrations the first time:
+Run migrations the first time (and after pulling changes that add migrations):
 
 ```bash
 docker compose exec backend python manage.py migrate
-docker compose exec backend python manage.py createsuperuser
+docker compose exec backend python manage.py createsuperuser   # optional, for /admin
 ```
 
-## Roadmap / milestones
+Then open the frontend and register an account.
 
-This is intentionally scoped as a series of small, shippable milestones rather than
-one big build:
+## Authentication
 
-1. **v1 — CRUD core** (this scaffold): Workout/Exercise/SetEntry/DailyMacro models, DRF
-   viewsets, React views wired through Redux — log a workout with a type, add sets
-   (exercise/reps/weight) to it, and log daily macros (calories/protein/carbs/fat).
-2. **v2 — Auth**: per-user accounts (Django auth + DRF token or session auth), so
-   workouts are scoped to the logged-in user.
-3. **v3 — Progress views**: a simple chart (e.g. weight lifted over time per exercise)
-   using the logged data — good place to practice Redux selectors and derived state.
-4. **v4 — Deploy**: containers pushed to a small cloud target (Render/Fly.io/AWS) with
-   a minimal Terraform config for the DB + app — the piece that turns "Docker" into
-   "Docker + basic infra-as-code" on a resume.
+The API uses DRF token authentication. Every endpoint except register and login
+requires an `Authorization: Token <key>` header, and every workout, set, macro log
+and exercise is scoped to the logged-in user: other users' rows return 404.
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/auth/register/` | POST | Create an account, returns `{token, user}` |
+| `/api/auth/login/` | POST | Returns `{token, user}` |
+| `/api/auth/logout/` | POST | Deletes the token on the server |
+| `/api/auth/me/` | GET | The current user |
+
+```bash
+curl -X POST localhost:8000/api/auth/login/ -H "Content-Type: application/json" \
+  -d '{"username": "ahmed", "password": "..."}'
+curl localhost:8000/api/workouts/ -H "Authorization: Token <key>"
+```
+
+Set `DJANGO_ALLOW_REGISTRATION=0` on the backend to stop new sign-ups.
+
+Data created before accounts existed has no owner and is hidden by the API. To
+assign it to your account:
+
+```bash
+docker compose exec backend python manage.py claim_unowned_data <username>
+```
+
+## Tests
+
+```bash
+docker compose exec backend python manage.py test
+```
+
+## Roadmap
+
+- [x] **CRUD core** — Workout/Exercise/SetEntry/DailyMacro models, DRF viewsets, React
+  views wired through Redux: log a workout, add sets, log daily macros.
+- [x] **Authentication** — token auth with register/login/logout, all data scoped to
+  the logged-in user, login/register screens and a Redux auth slice.
+- [ ] **Exercise management UI** — create, rename and delete exercises from the app
+  instead of the Django admin.
+- [ ] **Progress charts** — weight per exercise over time and daily macro/calorie trends.
+- [ ] **Tests + CI** — backend test suite and a GitHub Actions workflow that runs the
+  tests and the frontend build.
+- [ ] **Deployment** — production Docker setup and a Terraform config for AWS.
 
 ## Why this project exists
 
