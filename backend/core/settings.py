@@ -15,7 +15,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework.authtoken",
     "corsheaders",
+    "accounts",
     "tracker",
 ]
 
@@ -77,9 +79,22 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
+    # Clients send "Authorization: Token <key>" on every request.
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    # Every endpoint requires a logged-in user unless a view opts out
+    # (register and login do).
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
 }
+
+# Set DJANGO_ALLOW_REGISTRATION=0 to stop new sign-ups (e.g. on a personal
+# deployment where the only account already exists).
+ALLOW_REGISTRATION = os.environ.get("DJANGO_ALLOW_REGISTRATION", "1") == "1"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
