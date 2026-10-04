@@ -11,6 +11,8 @@ db.sqlite3
 backend/staticfiles/
 backend/media/
 .env
+.env.*
+!.env.prod.example
 
 # Node
 node_modules/
