@@ -65,6 +65,7 @@ async function request(path, options = {}) {
 }
 
 const post = (path, data) => request(path, { method: "POST", body: JSON.stringify(data) });
+const patch = (path, data) => request(path, { method: "PATCH", body: JSON.stringify(data) });
 const del = (path) => request(path, { method: "DELETE" });
 
 export const api = {
@@ -79,6 +80,8 @@ export const api = {
 
   listExercises: () => request("/exercises/"),
   createExercise: (data) => post("/exercises/", data),
+  updateExercise: (id, data) => patch(`/exercises/${id}/`, data),
+  deleteExercise: (id) => del(`/exercises/${id}/`),
 
   listSets: () => request("/sets/"),
   createSet: (data) => post("/sets/", data),
