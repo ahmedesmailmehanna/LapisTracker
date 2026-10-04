@@ -32,3 +32,11 @@ yarn-error.log*
 # Test coverage
 .coverage
 htmlcov/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log

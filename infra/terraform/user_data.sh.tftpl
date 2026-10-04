@@ -1,0 +1,60 @@
+#!/bin/bash
+# Boot script for the app server. cloud-init runs it once, as root, the first
+# time the instance starts. Values in $${...} form are filled in by Terraform
+# (see compute.tf); output goes to /var/log/lapistracker-bootstrap.log.
+set -euo pipefail
+exec > >(tee /var/log/lapistracker-bootstrap.log) 2>&1
+
+# --- Wait for the network -------------------------------------------------------
+# The Elastic IP is attached a few seconds after the instance starts, and the
+# instance has no internet access before that. Wait until this server's
+# public address is the Elastic IP before downloading anything.
+until [ "$(curl -s --max-time 5 https://checkip.amazonaws.com || true)" = "${elastic_ip}" ]; do
+  sleep 3
+done
+
+# --- Swap ---------------------------------------------------------------------
+# Building the React app needs more memory than a small instance has; a swap
+# file keeps the build from being killed.
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo "/swapfile none swap sw 0 0" >> /etc/fstab
+
+# --- Software -----------------------------------------------------------------
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get install -y docker.io docker-compose-v2 docker-buildx git
+snap install aws-cli --classic
+systemctl enable --now docker
+
+# --- Application code ---------------------------------------------------------
+git clone --depth 1 --branch "${repo_branch}" "${repo_url}" /opt/lapistracker
+cd /opt/lapistracker
+
+# --- Configuration ------------------------------------------------------------
+# Secrets are not in this script. The instance's IAM role is allowed to read
+# them from SSM Parameter Store, where they are stored encrypted.
+get_secret() {
+  aws ssm get-parameter --region "${aws_region}" --name "$1" \
+    --with-decryption --query Parameter.Value --output text
+}
+
+umask 077 # .env.prod is readable by root only
+cat > .env.prod <<ENVFILE
+DJANGO_SECRET_KEY=$(get_secret "${django_secret_key_parameter}")
+DJANGO_DEBUG=0
+DJANGO_ALLOWED_HOSTS=${elastic_ip}
+DJANGO_ALLOW_REGISTRATION=${allow_registration}
+POSTGRES_HOST=${db_host}
+POSTGRES_PORT=5432
+POSTGRES_DB=lapistracker
+POSTGRES_USER=lapistracker
+POSTGRES_PASSWORD=$(get_secret "${db_password_parameter}")
+ENVFILE
+
+# --- Start --------------------------------------------------------------------
+# Builds the two images and starts nginx + gunicorn. The backend container
+# runs the database migrations itself (backend/entrypoint.prod.sh).
+docker compose -f docker-compose.prod.yml up -d --build
