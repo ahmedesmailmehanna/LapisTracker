@@ -11,11 +11,26 @@ class Exercise(models.Model):
         CARDIO = "cardio", "Cardio"
         OTHER = "other", "Other"
 
-    name = models.CharField(max_length=100, unique=True)
+    # Each user has their own exercise list. Nullable only because exercises
+    # created before authentication existed have no owner; the API never
+    # creates an exercise without one (see ExerciseViewSet.perform_create).
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="exercises",
+        null=True,
+        blank=True,
+    )
+    name = models.CharField(max_length=100)
     category = models.CharField(max_length=20, choices=Category.choices, default=Category.OTHER)
 
     class Meta:
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["owner", "name"], name="unique_exercise_name_per_owner"
+            ),
+        ]
 
     def __str__(self):
         return self.name
