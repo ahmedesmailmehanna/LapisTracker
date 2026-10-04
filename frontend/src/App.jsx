@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import AuthPage from "./features/auth/AuthPage";
@@ -14,6 +14,11 @@ import ExerciseManager from "./features/exercises/ExerciseManager";
 import MacroLog from "./features/macros/MacroLog";
 import WorkoutList from "./features/workouts/WorkoutList";
 
+// The chart library is by far the largest dependency, so the Progress page
+// is split into its own JavaScript file that the browser only downloads
+// when the tab is first opened.
+const ProgressPage = lazy(() => import("./features/progress/ProgressPage"));
+
 // The app is small enough that a piece of state is all the "routing" it
 // needs. If deep links or the back button start to matter, swap this for
 // react-router.
@@ -21,6 +26,7 @@ const TABS = [
   { id: "workouts", label: "Workouts", component: WorkoutList },
   { id: "exercises", label: "Exercises", component: ExerciseManager },
   { id: "macros", label: "Macros", component: MacroLog },
+  { id: "progress", label: "Progress", component: ProgressPage },
 ];
 
 export default function App() {
@@ -81,7 +87,9 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <ActiveTab />
+        <Suspense fallback={<p>Loading…</p>}>
+          <ActiveTab />
+        </Suspense>
       </>
     );
   }
