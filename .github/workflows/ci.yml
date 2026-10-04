@@ -1,0 +1,104 @@
+name: CI
+
+# Run on every push and on pull requests, so a branch is checked before it
+# is merged into main.
+on:
+  push:
+  pull_request:
+
+# The jobs only need to read the code.
+permissions:
+  contents: read
+
+# If a newer commit is pushed to the same branch, stop the older run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+
+    # A throwaway PostgreSQL for this job, the same major version as
+    # docker-compose.yml. The tests run against the real database engine
+    # rather than SQLite so constraints behave as in production.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: lapistracker
+          POSTGRES_USER: lapistracker
+          POSTGRES_PASSWORD: lapistracker
+        ports:
+          - 5432:5432
+        # Wait until the database accepts connections before the steps start.
+        options: >-
+          --health-cmd "pg_isready -U lapistracker"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Read by backend/core/settings.py.
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: lapistracker
+      POSTGRES_USER: lapistracker
+      POSTGRES_PASSWORD: lapistracker
+      DJANGO_SECRET_KEY: ci-only-not-a-real-secret
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12" # same as backend/Dockerfile
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Django system check
+        run: python manage.py check
+
+      - name: Check that no migration is missing
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Run tests with coverage
+        run: coverage run manage.py test
+
+      - name: Coverage report
+        run: coverage report
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20" # same as frontend/Dockerfile
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # npm ci installs exactly what package-lock.json says and fails if the
+      # lock file and package.json disagree.
+      - name: Install dependencies
+        run: npm ci
+
+      # GitHub Actions sets CI=true, which makes react-scripts treat ESLint
+      # warnings as errors, so this step is also the lint check.
+      - name: Production build
+        run: npm run build
