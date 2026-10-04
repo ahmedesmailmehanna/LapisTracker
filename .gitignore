@@ -26,3 +26,7 @@ yarn-error.log*
 
 # Docker
 *.pid
+
+# Test coverage
+.coverage
+htmlcov/

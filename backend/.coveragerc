@@ -1,0 +1,10 @@
+[run]
+source = accounts, tracker
+omit =
+    */migrations/*
+    */tests/*
+
+[report]
+show_missing = True
+# CI fails if total coverage drops below this.
+fail_under = 90
