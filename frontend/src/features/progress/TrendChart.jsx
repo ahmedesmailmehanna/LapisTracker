@@ -15,8 +15,6 @@ import { CHART_INK, SERIES_COLORS } from "./chartTheme";
 const shortDate = new Intl.DateTimeFormat("en", { month: "short", day: "numeric" });
 const fullDate = new Intl.DateTimeFormat("en", { year: "numeric", month: "short", day: "numeric" });
 
-const cellStyle = { padding: "2px 12px 2px 0", textAlign: "left" };
-
 /**
  * A line chart of one or more series over time, plus the same data as a table.
  *
@@ -31,8 +29,8 @@ export default function TrendChart({ title, data, series, unit }) {
   const showDots = data.length <= 40;
 
   return (
-    <figure style={{ margin: "12px 0 24px" }}>
-      <figcaption style={{ fontWeight: "bold", marginBottom: 8 }}>{title}</figcaption>
+    <figure className="card mt-3">
+      <figcaption className="mb-3 text-sm font-semibold">{title}</figcaption>
 
       <ResponsiveContainer width="100%" height={260}>
         <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
@@ -61,7 +59,14 @@ export default function TrendChart({ title, data, series, unit }) {
           <Tooltip
             labelFormatter={(time) => fullDate.format(time)}
             formatter={(value, name) => [`${value} ${unit}`, name]}
+            contentStyle={{
+              backgroundColor: CHART_INK.tooltip,
+              border: `1px solid ${CHART_INK.axis}`,
+              borderRadius: 8,
+            }}
+            labelStyle={{ color: CHART_INK.muted }}
             itemStyle={{ color: CHART_INK.text }}
+            cursor={{ stroke: CHART_INK.axis }}
             isAnimationActive={false}
           />
           {/* With a single series the title already says what is plotted. */}
@@ -94,32 +99,34 @@ export default function TrendChart({ title, data, series, unit }) {
 
       {/* The same numbers as text, for anyone who cannot or would rather not
           read them off the chart. */}
-      <details style={{ fontSize: 14, color: CHART_INK.text }}>
-        <summary>Show data</summary>
-        <table style={{ borderCollapse: "collapse", marginTop: 6 }}>
-          <thead>
-            <tr>
-              <th style={cellStyle}>Date</th>
-              {series.map((s) => (
-                <th key={s.key} style={cellStyle}>
-                  {s.label} ({unit})
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((point) => (
-              <tr key={point.date}>
-                <td style={cellStyle}>{point.date}</td>
+      <details className="mt-2 text-sm text-slate-300">
+        <summary className="cursor-pointer text-slate-400 hover:text-slate-200">Show data</summary>
+        <div className="mt-2 max-h-64 overflow-auto">
+          <table className="w-full text-left tabular-nums">
+            <thead className="text-xs text-slate-400">
+              <tr>
+                <th className="py-1 pr-4 font-medium">Date</th>
                 {series.map((s) => (
-                  <td key={s.key} style={cellStyle}>
-                    {point[s.key]}
-                  </td>
+                  <th key={s.key} className="py-1 pr-4 font-medium">
+                    {s.label} ({unit})
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-800">
+              {data.map((point) => (
+                <tr key={point.date}>
+                  <td className="py-1 pr-4">{point.date}</td>
+                  {series.map((s) => (
+                    <td key={s.key} className="py-1 pr-4">
+                      {point[s.key]}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </details>
     </figure>
   );

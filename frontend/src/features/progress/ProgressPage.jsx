@@ -38,9 +38,15 @@ const MACRO_SERIES = [
 ];
 
 function StatusMessage({ status, isEmpty, emptyText }) {
-  if (status === "loading" || status === "idle") return <p>Loading…</p>;
-  if (status === "failed") return <p role="alert">Could not load this chart.</p>;
-  if (isEmpty) return <p>{emptyText}</p>;
+  if (status === "loading" || status === "idle") return <p className="muted-text mt-3">Loading…</p>;
+  if (status === "failed") {
+    return (
+      <p role="alert" className="error-text">
+        Could not load this chart.
+      </p>
+    );
+  }
+  if (isEmpty) return <p className="muted-text mt-3">{emptyText}</p>;
   return null;
 }
 
@@ -88,32 +94,38 @@ export default function ProgressPage() {
 
   return (
     <div>
-      <h2>Progress</h2>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <h2 className="text-xl font-semibold">Progress</h2>
 
-      <label>
-        Period{" "}
-        <select
-          value={days ?? "all"}
-          onChange={(e) =>
-            dispatch(rangeChanged(e.target.value === "all" ? null : Number(e.target.value)))
-          }
-        >
-          {RANGES.map((range) => (
-            <option key={range.label} value={range.days ?? "all"}>
-              {range.label}
-            </option>
-          ))}
-        </select>
-      </label>
+        <label className="label mb-0">
+          Period
+          <select
+            className="input mt-1"
+            value={days ?? "all"}
+            onChange={(e) =>
+              dispatch(rangeChanged(e.target.value === "all" ? null : Number(e.target.value)))
+            }
+          >
+            {RANGES.map((range) => (
+              <option key={range.label} value={range.days ?? "all"}>
+                {range.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
-      <h3>Strength</h3>
+      <h3 className="mt-6 text-base font-semibold text-slate-300">Strength</h3>
       {exercises.length === 0 ? (
-        <p>Add an exercise and log some sets to see your progress here.</p>
+        <p className="muted-text mt-3">
+          Add an exercise and log some sets to see your progress here.
+        </p>
       ) : (
         <>
-          <label>
-            Exercise{" "}
+          <label className="label mt-3 max-w-xs">
+            Exercise
             <select
+              className="input mt-1"
               value={exerciseId ?? ""}
               onChange={(e) => dispatch(exerciseSelected(Number(e.target.value)))}
             >
@@ -140,7 +152,7 @@ export default function ProgressPage() {
         </>
       )}
 
-      <h3>Nutrition</h3>
+      <h3 className="mt-8 text-base font-semibold text-slate-300">Nutrition</h3>
       <StatusMessage
         status={macroStatus}
         isEmpty={macrosAreEmpty}
