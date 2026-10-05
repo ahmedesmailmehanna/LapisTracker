@@ -16,7 +16,12 @@ const CATEGORIES = ["push", "pull", "legs", "core", "cardio", "other"];
 
 function CategorySelect({ value, onChange }) {
   return (
-    <select value={value} onChange={(e) => onChange(e.target.value)} aria-label="Category">
+    <select
+      className="input capitalize"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      aria-label="Category"
+    >
       {CATEGORIES.map((c) => (
         <option key={c} value={c}>
           {c}
@@ -52,9 +57,10 @@ function ExerciseRow({ exercise }) {
 
   if (isEditing) {
     return (
-      <li style={{ marginBottom: 6 }}>
-        <form onSubmit={handleSave}>
+      <li className="py-3">
+        <form onSubmit={handleSave} className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_8rem_auto_auto]">
           <input
+            className="input col-span-2 sm:col-span-1"
             type="text"
             aria-label="Exercise name"
             value={name}
@@ -62,9 +68,13 @@ function ExerciseRow({ exercise }) {
             maxLength={100}
             required
           />
-          <CategorySelect value={category} onChange={setCategory} />
-          <button type="submit">Save</button>
-          <button type="button" onClick={() => setIsEditing(false)}>
+          <div className="col-span-2 sm:col-span-1">
+            <CategorySelect value={category} onChange={setCategory} />
+          </div>
+          <button type="submit" className="btn-primary">
+            Save
+          </button>
+          <button type="button" className="btn-ghost" onClick={() => setIsEditing(false)}>
             Cancel
           </button>
         </form>
@@ -73,14 +83,21 @@ function ExerciseRow({ exercise }) {
   }
 
   return (
-    <li style={{ marginBottom: 6 }}>
-      <strong>{exercise.name}</strong> — {exercise.category}
-      <button onClick={startEditing} style={{ marginLeft: 8 }}>
-        Edit
-      </button>
-      <button onClick={() => dispatch(removeExercise(exercise.id))} style={{ marginLeft: 4 }}>
-        Delete
-      </button>
+    <li className="flex items-center justify-between gap-3 py-2">
+      <span className="flex min-w-0 flex-wrap items-center gap-2">
+        <strong className="break-words font-medium">{exercise.name}</strong>
+        <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs capitalize text-slate-300">
+          {exercise.category}
+        </span>
+      </span>
+      <span className="flex shrink-0 gap-1">
+        <button className="btn-ghost" onClick={startEditing}>
+          Edit
+        </button>
+        <button className="btn-danger" onClick={() => dispatch(removeExercise(exercise.id))}>
+          Delete
+        </button>
+      </span>
     </li>
   );
 }
@@ -110,38 +127,44 @@ export default function ExerciseManager() {
 
   return (
     <div>
-      <h2>Exercises</h2>
+      <h2 className="text-xl font-semibold">Exercises</h2>
 
-      <form onSubmit={handleAdd}>
+      <form onSubmit={handleAdd} className="card mt-4 grid grid-cols-2 gap-2 sm:grid-cols-[1fr_8rem_auto]">
         <input
+          className="input col-span-2 sm:col-span-1"
           type="text"
           placeholder="New exercise name"
+          aria-label="New exercise name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={100}
           required
         />
         <CategorySelect value={category} onChange={setCategory} />
-        <button type="submit">Add exercise</button>
+        <button type="submit" className="btn-primary">
+          Add exercise
+        </button>
       </form>
 
       {saveError && (
-        <p role="alert" style={{ color: "#b00020" }}>
+        <p role="alert" className="error-text">
           {saveError}
         </p>
       )}
 
-      {status === "loading" && <p>Loading…</p>}
-      {status === "failed" && <p>Could not load exercises.</p>}
+      {status === "loading" && <p className="muted-text mt-4">Loading…</p>}
+      {status === "failed" && <p className="error-text">Could not load exercises.</p>}
       {status === "succeeded" && exercises.length === 0 && (
-        <p>No exercises yet. Add your first one above.</p>
+        <p className="muted-text mt-4">No exercises yet. Add your first one above.</p>
       )}
 
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {exercises.map((exercise) => (
-          <ExerciseRow key={exercise.id} exercise={exercise} />
-        ))}
-      </ul>
+      {exercises.length > 0 && (
+        <ul className="card mt-4 divide-y divide-slate-800 py-1">
+          {exercises.map((exercise) => (
+            <ExerciseRow key={exercise.id} exercise={exercise} />
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
