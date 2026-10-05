@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* The app is dark-only. color-scheme makes the browser draw its own widgets
+   (date pickers, select menus, scrollbars) in dark colours too. */
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased;
+  }
+}
+
+/* A few named classes for elements that repeat on every screen. Everything
+   else is styled with utility classes directly in the JSX. */
+@layer components {
+  .card {
+    @apply rounded-xl border border-slate-800 bg-slate-900 p-4;
+  }
+
+  .label {
+    @apply mb-1 block text-xs font-medium text-slate-400;
+  }
+
+  /* text-base (16px) on phones stops iOS from zooming in on focus. A fixed
+     height keeps text inputs, selects and date pickers level in a row. */
+  .input {
+    @apply block h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base text-slate-100 placeholder-slate-500 focus:border-lapis-400 focus:outline-none focus:ring-1 focus:ring-lapis-400 sm:h-10 sm:text-sm;
+  }
+
+  /* Same heights as .input, so a button lines up with the fields beside it
+     and is a comfortable tap target on a phone. */
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-lapis-400 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-10;
+  }
+  .btn-primary {
+    @apply btn bg-lapis-600 text-white hover:bg-lapis-500;
+  }
+  .btn-ghost {
+    @apply btn text-slate-300 hover:bg-slate-800;
+  }
+  .btn-danger {
+    @apply btn text-rose-400 hover:bg-rose-500/10;
+  }
+
+  .error-text {
+    @apply mt-3 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-300;
+  }
+  .muted-text {
+    @apply text-sm text-slate-400;
+  }
+}
