@@ -9,8 +9,6 @@ import {
   selectAuthStatus,
 } from "./authSlice";
 
-const fieldStyle = { display: "block", marginBottom: 8, padding: 6, width: "100%" };
-
 // One component for both screens: the forms only differ by the email field
 // and by which thunk is dispatched.
 export default function AuthPage() {
@@ -39,52 +37,77 @@ export default function AuthPage() {
   }
 
   return (
-    <div style={{ maxWidth: 320 }}>
-      <h2>{isRegister ? "Create an account" : "Log in"}</h2>
+    <div className="card mx-auto mt-8 max-w-sm p-6">
+      <h2 className="text-xl font-semibold">{isRegister ? "Create an account" : "Log in"}</h2>
+      <p className="muted-text mt-1">
+        {isRegister ? "Start tracking your training." : "Welcome back."}
+      </p>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          autoComplete="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          style={fieldStyle}
-        />
-        {isRegister && (
+      <form onSubmit={handleSubmit} className="mt-5 space-y-3">
+        <div>
+          <label className="label" htmlFor="auth-username">
+            Username
+          </label>
           <input
-            type="email"
-            placeholder="Email (optional)"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={fieldStyle}
+            id="auth-username"
+            className="input"
+            type="text"
+            placeholder="Username"
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
           />
+        </div>
+        {isRegister && (
+          <div>
+            <label className="label" htmlFor="auth-email">
+              Email
+            </label>
+            <input
+              id="auth-email"
+              className="input"
+              type="email"
+              placeholder="Email (optional)"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
         )}
-        <input
-          type="password"
-          placeholder="Password"
-          autoComplete={isRegister ? "new-password" : "current-password"}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={fieldStyle}
-        />
-        <button type="submit" disabled={status === "loading"}>
+        <div>
+          <label className="label" htmlFor="auth-password">
+            Password
+          </label>
+          <input
+            id="auth-password"
+            className="input"
+            type="password"
+            placeholder="Password"
+            autoComplete={isRegister ? "new-password" : "current-password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit" className="btn-primary w-full" disabled={status === "loading"}>
           {isRegister ? "Register" : "Log in"}
         </button>
       </form>
 
       {status === "failed" && (
-        <p role="alert" style={{ color: "#b00020" }}>
+        <p role="alert" className="error-text">
           {error}
         </p>
       )}
 
-      <p>
+      <p className="muted-text mt-5 text-center">
         {isRegister ? "Already have an account?" : "No account yet?"}{" "}
-        <button type="button" onClick={switchMode}>
+        <button
+          type="button"
+          onClick={switchMode}
+          className="font-medium text-lapis-300 underline-offset-2 hover:underline focus:outline-none focus-visible:underline"
+        >
           {isRegister ? "Log in" : "Register"}
         </button>
       </p>
