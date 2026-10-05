@@ -8,7 +8,8 @@ in full-stack intern postings (e.g. Formlabs FormNow: Django, React/Redux, Docke
 ## Stack
 
 - **Backend:** Django + Django REST Framework, PostgreSQL
-- **Frontend:** React + Redux Toolkit, fetches the API with a small typed client
+- **Frontend:** React + Redux Toolkit, styled with Tailwind CSS (dark theme, mobile-first),
+  fetches the API with a small client module
 - **Infra:** Docker Compose for development and production, GitHub Actions CI,
   Terraform configuration for AWS (EC2 + RDS)
 
@@ -168,6 +169,7 @@ and known limitations. It has not been applied to a real account yet.
   tests and the frontend build.
 - [x] **Deployment** — production Docker setup (nginx + gunicorn) and a Terraform
   configuration for AWS (EC2 + RDS). Written and statically checked; not yet applied.
+- [x] **UI** — Tailwind CSS, dark theme, laid out for phones first with a bottom tab bar.
 
 ## Why this project exists
 
